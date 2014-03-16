@@ -33,33 +33,40 @@ function wilyToGraphite(request, response) {
 function getGraphiteEvents(req, resp) {
 	console.log("Request handler 'getGraphiteEvents' was called.");
 	var queryData = url.parse(req.url, true).query;
-	var eventUrl = 'http://localhost/events/get_data?tags=' + queryData.tags;
 	
+	getBuildTimestamps(queryData.tags, function(error,body){
+
+		resp.writeHead(200, {"Content-Type": "text/plain"});
+		resp.write(body);
+		resp.end();
+
+	});
+	
+
+	 
+	
+}
+
+
+function getBuildTimestamps(buildId) {
+	
+	var eventUrl = 'http://localhost/events/get_data?tags=' + buildId;
 	
   	request(eventUrl, function (error, response, body) {
 	  
 	  var eventsArray = [];
 	  if (!error && response.statusCode == 200) {
-	
-		debugger;   	
-	   	
-	   	console.log('typeof body' + typeof(eval(body)));
-	   	eventsArray = eval(body);
-
-	   	for(i=0;i<eventsArray.length;i++){
-
-	   		console.log(eventsArray[i]);
-	   	}
-	   	
-	   	resp.writeHead(200, {"Content-Type": "text/plain"});
-		resp.write(body);
-		resp.end();
+		console.log(body);
+		debugger;
+	   	return body;
 	    
 	  }
-	})
+	
+	});
 
 
 }
+
 
 exports.getRequirementsResults = getRequirementsResults;
 exports.wilyToGraphite = wilyToGraphite;
