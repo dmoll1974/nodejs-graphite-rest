@@ -1,6 +1,6 @@
 var exec = require("child_process").exec;
 var url = require('url');
-var request = require('request');
+var request = require('request-json');
 
 
 
@@ -33,34 +33,86 @@ function wilyToGraphite(request, response) {
 function getGraphiteEvents(req, resp) {
 	console.log("Request handler 'getGraphiteEvents' was called.");
 	var queryData = url.parse(req.url, true).query;
-	var eventUrl = 'http://localhost/events/get_data?tags=' + queryData.tags;
 	
+		var timestampsObj = getBuildTimestamps(queryData.tags)
+		console.log(timestampsObj);
+		// resp.writeHead(200, {"Content-Type": "text/plain"});
+		// resp.write(getBuildTimestamps(queryData.tags));
+		// resp.end();
 	
-  	request(eventUrl, function (error, response, body) {
+
+ } 	
+
+ function getBuildTimestamps(build) {
+	
+	var client = request.newClient('http://172.21.42.152/');
+	var timestamps={};
+	
+	client.get('events/get_data?tags=' + build, function(err, res, body) {
+		
+		timestamps.build = build;
+//		console.log(body)
+
+		for(i=0;i<body.length;i++){
+			if(body[i].what == 'Start-loadtest')
+				timestamps.start = body[i].when
+			else{
+			
+				if(body[i].what == 'End-loadtest')
+				timestamps.end = body[i].when
+			}
+		}  		
+
+		//console.log(timestamps);
+
+  		return timestamps;
+  		
+	});
+
+ } 	
+
+
+ 		exports.getRequirementsResults = getRequirementsResults;
+		exports.wilyToGraphite = wilyToGraphite;
+		exports.getGraphiteEvents = getGraphiteEvents;
+
+ //  	request(eventUrl, function (error, response, body) {
 	  
-	  var eventsArray = [];
-	  if (!error && response.statusCode == 200) {
+	//   var eventsArray = [];
+	//   if (!error && response.statusCode == 200) {
 	
-		debugger;   	
-	   	
-	   	console.log('typeof body' + typeof(eval(body)));
-	   	eventsArray = eval(body);
+	// 	debugger;   	
+	//    	var timestamps={};
+	//    	console.log('typeof body' + typeof(eval(body)));
+	//    	eventsArray = eval(body);
 
-	   	for(i=0;i<eventsArray.length;i++){
+	//    	for(i=0;i<eventsArray.length;i++){
 
-	   		console.log(eventsArray[i]);
-	   	}
+	   		
+	//    		if (eventsArray[0].what == 'Start-loadtest'){
+	   			
+	//    			timestamps.start = eventObj.when;
+
+	// 	   	}
+
+	// 	   	if (eventObj[what] == 'End-loadtest') {
+
+	// 	   		timestamps.end = eventObj.when;
+		   	
+	// 	   	}
+	   			
+	//    	}
 	   	
-	   	resp.writeHead(200, {"Content-Type": "text/plain"});
-		resp.write(body);
-		resp.end();
+	//    	console.log(timestaps);
+
+	//    	resp.writeHead(200, {"Content-Type": "text/plain"});
+	// 	resp.write(body);
+	// 	resp.end();
 	    
-	  }
-	})
+	// }  
+	// })
 
 
-}
+//}
 
-exports.getRequirementsResults = getRequirementsResults;
-exports.wilyToGraphite = wilyToGraphite;
-exports.getGraphiteEvents = getGraphiteEvents;
+
